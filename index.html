@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>شحن كوينز بوبو</title>
+<meta name="description" content="كلّم أدمن متاح على واتساب واشحن كوينز بوبو">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f5f2; --card:#ffffff; --fg:#14201a; --muted:#5f6f66;
+    --green:#1fa855; --green-d:#168a45; --line:#dfe5e0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0e1512; --card:#17211c; --fg:#e8efe9; --muted:#93a39a;
+           --green:#25c063; --green-d:#1fa855; --line:#26332c; }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:'Cairo',Tahoma,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:440px;margin:0 auto;padding:28px 16px 40px;display:flex;flex-direction:column;gap:18px}
+  h1{font-size:24px;font-weight:800;margin:0;text-wrap:balance}
+  .sub{color:var(--muted);margin:0;font-size:15px;line-height:1.7}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px}
+  .big{display:flex;align-items:center;justify-content:center;width:100%;
+    background:var(--green);color:#fff;text-decoration:none;border-radius:14px;
+    padding:16px;font:800 18px 'Cairo',Tahoma,sans-serif}
+  .big:hover,.big:focus-visible{background:var(--green-d)}
+  .admin{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 14px;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--fg)}
+  .admin:hover,.admin:focus-visible{border-color:var(--green)}
+  .who{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--green);flex:none;
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--green) 22%,transparent)}
+  .go{color:var(--green);font-weight:800;font-size:14px;white-space:nowrap}
+  .label{font-size:13px;color:var(--muted);margin:0}
+  .empty{text-align:center;padding:10px 4px;line-height:1.8}
+  .empty b{display:block;font-size:18px;margin-bottom:4px}
+  .list{display:flex;flex-direction:column;gap:8px}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>شحن كوينز بوبو</h1>
+    <p class="sub">دوس على الزرار وهتتحول على واتساب الأدمن المتاح دلوقتي على طول.</p>
+  </div>
+
+  <div class="card" id="loading"><p class="sub" style="text-align:center">جاري التحميل…</p></div>
+
+  <div class="card" id="has" hidden>
+    <a class="big" id="first" href="#">كلّم أدمن متاح على واتساب</a>
+    <p class="label" id="orLabel" hidden>أو اختار بنفسك</p>
+    <div class="list" id="list"></div>
+  </div>
+
+  <div class="card" id="none" hidden>
+    <div class="empty">
+      <b>مفيش أدمن متاح دلوقتي</b>
+      <span class="sub">جرب تاني بعد شوية، الصفحة بتتحدث لوحدها.</span>
+    </div>
+  </div>
+
+  <div class="card" id="fail" hidden>
+    <div class="empty">
+      <b>مقدرناش نحمّل الصفحة</b>
+      <span class="sub">اتأكد من النت واعمل تحديث للصفحة.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  var API = 'https://script.google.com/macros/s/AKfycbzVvci1ohUKR52_yxdEnQkutybpEx5whs2zgM1POQEQd1_REuT1nbsalxr8UHTURDT6/exec?api';
+  var $ = function(id){ return document.getElementById(id); };
+  var loaded = false;
+
+  function show(id){
+    ['loading','has','none','fail'].forEach(function(k){ $(k).hidden = (k !== id); });
+  }
+
+  function render(list){
+    loaded = true;
+    if (!list.length){ show('none'); return; }
+    show('has');
+    $('first').href = list[0].link;
+    $('orLabel').hidden = list.length < 2;
+    var box = $('list'); box.innerHTML = '';
+    if (list.length < 2) return;
+    list.forEach(function(a){
+      var el = document.createElement('a'); el.className = 'admin'; el.href = a.link;
+      var w = document.createElement('span'); w.className = 'who';
+      var d = document.createElement('span'); d.className = 'dot';
+      var n = document.createElement('span'); n.textContent = a.name;
+      w.appendChild(d); w.appendChild(n);
+      var g = document.createElement('span'); g.className = 'go'; g.textContent = 'كلّمه ←';
+      el.appendChild(w); el.appendChild(g); box.appendChild(el);
+    });
+  }
+
+  function load(){
+    fetch(API + '&t=' + Date.now(), { credentials: 'omit', cache: 'no-store' })
+      .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(d){ render((d && d.admins) || []); })
+      .catch(function(){ if (!loaded) show('fail'); });
+  }
+
+  load();
+  setInterval(load, 30000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) load(); });
+</script>
+</body>
+</html>
