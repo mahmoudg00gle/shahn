@@ -38,6 +38,11 @@
   .empty{text-align:center;padding:10px 4px;line-height:1.8}
   .empty b{display:block;font-size:18px;margin-bottom:4px}
   .list{display:flex;flex-direction:column;gap:8px}
+  .offrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;
+    border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
+  .offrow .who{color:var(--fg)}
+  .offdot{width:10px;height:10px;border-radius:50%;background:var(--line);flex:none}
+  .when{font-size:14px;text-align:left}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -63,6 +68,11 @@
     </div>
   </div>
 
+  <div class="card" id="offCard" hidden>
+    <p class="label">أدمن مش متاح دلوقتي</p>
+    <div class="list" id="offList"></div>
+  </div>
+
   <div class="card" id="fail" hidden>
     <div class="empty">
       <b>مقدرناش نحمّل الصفحة</b>
@@ -72,12 +82,27 @@
 </div>
 
 <script>
-  var API = 'https://script.google.com/macros/s/AKfycbzVvci1ohUKR52_yxdEnQkutybpEx5whs2zgM1POQEQd1_REuT1nbsalxr8UHTURDT6/exec?api';
+  var API = 'https://script.google.com/macros/s/AKfycbzVvci1ohUKR52_yxdEnQkutybpEx5whs2zgM1POQEQd1_REuT1nbsalxr8UHTURDT6/exec';
   var $ = function(id){ return document.getElementById(id); };
   var loaded = false;
 
   function show(id){
     ['loading','has','none','fail'].forEach(function(k){ $(k).hidden = (k !== id); });
+  }
+
+  function renderOff(off){
+    var withNote = (off || []).filter(function(a){ return a.note; });
+    var box = $('offList'); box.innerHTML = '';
+    $('offCard').hidden = !withNote.length;
+    withNote.forEach(function(a){
+      var r = document.createElement('div'); r.className = 'offrow';
+      var w = document.createElement('span'); w.className = 'who';
+      var d = document.createElement('span'); d.className = 'offdot';
+      var n = document.createElement('span'); n.textContent = a.name;
+      w.appendChild(d); w.appendChild(n);
+      var t = document.createElement('span'); t.className = 'when'; t.textContent = a.note;
+      r.appendChild(w); r.appendChild(t); box.appendChild(r);
+    });
   }
 
   function render(list){
@@ -100,10 +125,10 @@
   }
 
   function load(){
-    fetch(API + '&t=' + Date.now(), { credentials: 'omit', cache: 'no-store' })
+    fetch(API + '?t=' + Date.now(), { credentials: 'omit', cache: 'no-store' })
       .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function(d){ render((d && d.admins) || []); })
-      .catch(function(){ if (!loaded) show('fail'); });
+      .then(function(d){ render((d && d.admins) || []); renderOff(d && d.off); })
+      .catch(function(){ if (!loaded){ show('fail'); $('offCard').hidden = true; } });
   }
 
   load();
